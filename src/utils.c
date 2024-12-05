@@ -48,8 +48,8 @@
 void init(int port) {
    //TODO: create an int to hold the socket file descriptor
    //TODO: create a sockaddr_in struct to hold the address of the server
-
-
+  int sd;
+  struct sockaddr_in server;
    /**********************************************
     * IMPORTANT!
     * ALL TODOS FOR THIS FUNCTION MUST BE COMPLETED FOR THE INTERIM SUBMISSION!!!!
@@ -58,23 +58,42 @@ void init(int port) {
    
    
    // TODO: Create a socket and save the file descriptor to sd (declared above)
-   
+  if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    perror("Socket creation failed");
+    exit(EXIT_FAILURE);
+  }
    // TODO: Change the socket options to be reusable using setsockopt(). 
-
+  int opt = 1;
+  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    perror("Set socket options failed");
+    close(sd);
+    exit(EXIT_FAILURE);
+  }
 
    // TODO: Bind the socket to the provided port.
-  
+  server.sin_family = AF_INET;
+  server.sin_addr.s_addr = INADDR_ANY;
+  server.sin_port = htons(port);
 
+  if (bind(sd, (struct sockaddr *)&server, sizeof(server)) < 0) {
+    perror("Bind failed");
+    close(sd);
+    exit(EXIT_FAILURE);
+  }
    // TODO: Mark the socket as a pasive socket. (ie: a socket that will be used to receive connections)
 
-   
+  if (listen(sd, SOMAXCONN) < 0) {
+    perror("Listen failed");
+    close(sd);
+    exit(EXIT_FAILURE);
+  }
    
    
    // We save the file descriptor to a global variable so that we can use it in accept_connection().
    // TODO: Save the file descriptor to the global variable master_fd
-
-   printf("UTILS.O: Server Started on Port %d\n",port);
-   fflush(stdout);
+  master_fd = sd;
+  printf("UTILS.O: Server Started on Port %d\n",port);
+  fflush(stdout);
 
 }
 
