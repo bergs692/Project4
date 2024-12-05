@@ -108,7 +108,10 @@ void init(int port) {
 int accept_connection(void) {
 
    //TODO: create a sockaddr_in struct to hold the address of the new connection
-  
+   struct sockaddr_in addr;
+   addr.sin_family=AF_INET;
+   addr.sin_addr.s_addr=htonl(INADDR_ANY);
+   addr.sin_port=htons(port);
    
    /**********************************************
     * IMPORTANT!
