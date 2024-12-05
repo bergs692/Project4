@@ -27,10 +27,11 @@
 #include <stdint.h>
 
 //TODO: Declare a global variable to hold the file descriptor for the server socket
-
+int master_fd;
 //TODO: Declare a global variable to hold the mutex lock for the server socket
-
+pthread_mutex_t socket_mutex;
 //TODO: Declare a gloabl socket address struct to hold the address of the server
+struct sockaddr_in server_addr;
 
 /*
 ################################################
