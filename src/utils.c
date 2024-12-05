@@ -109,9 +109,7 @@ int accept_connection(void) {
 
    //TODO: create a sockaddr_in struct to hold the address of the new connection
    struct sockaddr_in addr;
-   addr.sin_family=AF_INET;
-   addr.sin_addr.s_addr=htonl(INADDR_ANY);
-   addr.sin_port=htons(port);
+   socklen_t addr_len = sizeof(addr);
    
    /**********************************************
     * IMPORTANT!
@@ -121,14 +119,29 @@ int accept_connection(void) {
    
    
    // TODO: Aquire the mutex lock
-
+   if(pthread_mutex_lock(&socket_mutex)!=0){
+    perror("LOCK FAIL\n");
+    return -1;
+   }
    // TODO: Accept a new connection on the passive socket and save the fd to newsock
-
+  int acceptFd = accept(master_fd,(struct sockaddr*)&addr,&addr_len);
+  if(acceptFd < 0){
+    perror("ACCEPT FAIL");
+    if(pthread_mutex_unlock(&socket_mutex)!=0){
+      perror("UNLOCK FAIL\n");
+      return -1;
+    }
+    return -1;
+  }
    // TODO: Release the mutex lock
-
+  if(pthread_mutex_unlock(&socket_mutex)!=0){
+    perror("UNLOCK FAIL\n");
+    return -1;
+   }
 
    // TODO: Return the file descriptor for the new client connection
-   
+   return acceptFd;
+
 }
 
 
