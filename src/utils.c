@@ -201,7 +201,6 @@ char * get_request_server(int fd, size_t *filelength)
         perror("Failed to receive file size");
         return NULL;
     }
-	int *filelength = packet.size;
 	char *buffer = malloc(*filelength);
     if (!buffer) {
         perror("Failed to allocate memory for file data");
@@ -227,6 +226,7 @@ char * get_request_server(int fd, size_t *filelength)
 	printf("get_request_server is much success!");
 	return buffer;
 }
+
 
 /*
 ################################################
