@@ -1,0 +1,11 @@
+P4
+CSCI 4061 - Fall 2024 - Project #4
+
+Connor River river853 - send_file_to_client/ get_request_server
+Logan Mazhar mazha017 - server/ recieve_file_from_server
+Jonah Bergstrom bergs692 -  setup_connection/ send_file_to_server
+
+NO CHANGES TO MAKEFILE
+(i.e. Make and make clean etc. all apllies as usual)
+
+Assumptions: NONE
