@@ -325,7 +325,7 @@ int receive_file_from_server(int socket, const char *filename)
    //TODO: recieve the file data and write it to the file
     while (bytes_received < total_bytes) {
         size_t remaining = total_bytes - bytes_received;
-        size_t to_read = (remaining < BUFFER_SIZE) ? remaining : BUFFER_SIZE;
+        size_t to_read = (remaining < BUFF_SIZE) ? remaining : BUFF_SIZE;
         
         ssize_t chunk = recv(socket, buffer, to_read, 0);
         
