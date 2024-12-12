@@ -246,7 +246,6 @@ int receive_file_from_server(int socket, const char *filename)
     packet_t size_packet;
     size_t bytes_received = 0;
     size_t total_bytes = 0;
-    FILE *file;
 
 
     //TODO: open the file for writing binary data
