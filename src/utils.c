@@ -201,6 +201,9 @@ char * get_request_server(int fd, size_t *filelength)
         perror("Failed to receive file size");
         return NULL;
     }
+
+  *filelength = packet.size;
+
 	char *buffer = malloc(*filelength);
     if (!buffer) {
         perror("Failed to allocate memory for file data");
@@ -337,8 +340,19 @@ int receive_file_from_server(int socket, const char *filename)
     size_t recieved = 0;
     size_t tot_bytes = 0;
 
-
+    char *dir_path = strdup(filename); 
+    char *last_slash = strrchr(dir_path, '/');
+    if (last_slash != NULL) {
+        *last_slash = '\0'; 
+        if (mkdir(dir_path, 0777) == -1 && errno != EEXIST) { 
+            perror("Error creating directories");
+            free(dir_path);
+            return -1;
+        }
+    }
+    free(dir_path); 
     //TODO: open the file for writing binary data
+    
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
         perror("Failed to open file");
