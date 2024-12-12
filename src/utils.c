@@ -168,16 +168,15 @@ int send_file_to_client(int socket, char * buffer, int size)
 
 
     //TODO: send the file data
-	int bytes_sent = 0;
-    while (bytes_sent < size) {
-        int chunk_size = (size - bytes_sent) > BUFF_SIZE ? BUFF_SIZE : (size - bytes_sent);
-        memcpy(buffer, buffer + bytes_sent, chunk_size);
+	int num_chunks = (size + BUFF_SIZE - 1) / BUFF_SIZE;
+	for (int i = 0; i < num_chunks; i++) {
+        int chunk_size = (i == num_chunks - 1) ? (size - i * BUFF_SIZE) : BUFF_SIZE;
+        char *chunk = buffer + i * BUFF_SIZE;
 
-        if (write(socket, buffer, chunk_size) < 0) {
-            perror("Failed to send file data");
+        if (write(socket, chunk, chunk_size) != chunk_size) {
+            perror("Error sending data chunk");
             return -1;
         }
-        bytes_sent += chunk_size;
     }
 	printf("send_file_to_client is success!");
     //TODO: return 0 on success, -1 on failure
@@ -300,7 +299,7 @@ int send_file_to_server(int socket, FILE *file, int size)
 int receive_file_from_server(int socket, const char *filename) 
 {
     //TODO: create a buffer to hold the file data
-    char buffer[BUFFER_SIZE];
+    char buffer[BUFF_SIZE];
     packet_t size_packet;
     size_t bytes_received = 0;
     size_t total_bytes = 0;
@@ -329,7 +328,7 @@ int receive_file_from_server(int socket, const char *filename)
    //TODO: recieve the file data and write it to the file
     while (bytes_received < total_bytes) {
         size_t remaining = total_bytes - bytes_received;
-        size_t to_read = (remaining < BUFFER_SIZE) ? remaining : BUFFER_SIZE;
+        size_t to_read = (remaining < BUFF_SIZE) ? remaining : BUFF_SIZE;
         
         ssize_t chunk = recv(socket, buffer, to_read, 0);
         
