@@ -168,6 +168,7 @@ int send_file_to_client(int socket, char * buffer, int size)
 
 
     //TODO: send the file data
+
 	int num_chunks = (size + BUFF_SIZE - 1) / BUFF_SIZE;
 	for (int i = 0; i < num_chunks; i++) {
         int chunk_size = (i == num_chunks - 1) ? (size - i * BUFF_SIZE) : BUFF_SIZE;
@@ -209,6 +210,7 @@ char * get_request_server(int fd, size_t *filelength)
     //TODO: get the size of the image from the packet
 
     //TODO: recieve the file data and save into a buffer variable.
+
 	int bytes_received = 0;
     while (bytes_received < *filelength) {
         int chunk_size = (*filelength - bytes_received) > BUFF_SIZE ? BUFF_SIZE : (*filelength - bytes_received);
@@ -273,6 +275,7 @@ int send_file_to_server(int socket, FILE *file, int size)
 {
     //TODO: send the file size packet
 
+
     int n = write(socket, &size, sizeof(size));
     if(n<0){
       perror("ERROR writing to socket");
@@ -329,8 +332,6 @@ int receive_file_from_server(int socket, const char *filename)
 {
     //TODO: create a buffer to hold the file data
     char buf[BUFF_SIZE];
-
-	
     packet_t size_packet;
     size_t recieved = 0;
     size_t tot_bytes = 0;
