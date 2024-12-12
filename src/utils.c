@@ -296,6 +296,8 @@ int receive_file_from_server(int socket, const char *filename)
 {
     //TODO: create a buffer to hold the file data
     char buf[BUFF_SIZE];
+
+	
     packet_t size_packet;
     size_t recieved = 0;
     size_t tot_bytes = 0;
