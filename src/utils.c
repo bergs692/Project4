@@ -252,6 +252,7 @@ int setup_connection(int port)
       exit (-1);
     }
     //TODO: assign IP, PORT to the sockaddr_in struct
+    serveradd.sin_addr.s_addr = INADDR_ANY;
     serveradd.sin_family = AF_INET;
     serveradd.sin_port = htons((unsigned short)port);
     //TODO: connect to the server
