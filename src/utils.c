@@ -26,6 +26,8 @@
 #include <limits.h>
 #include <stdint.h>
 
+#define BUFF_SIZE 1028
+
 //TODO: Declare a global variable to hold the file descriptor for the server socket
 int master_fd;
 //TODO: Declare a global variable to hold the mutex lock for the server socket
@@ -155,15 +157,31 @@ int accept_connection(void) {
 int send_file_to_client(int socket, char * buffer, int size) 
 {
     //TODO: create a packet_t to hold the packet data
- 
+	packet_t packet;
+	packet.size = size;
+	if(write(socket, &packet.size, sizeof(packet.size)) < 0){
+		perror("Failed to send file size!");
+		return -1;
+	}
 
     //TODO: send the file size packet
 
 
     //TODO: send the file data
-  
-    //TODO: return 0 on success, -1 on failure
+	int bytes_sent = 0;
+    while (bytes_sent < size) {
+        int chunk_size = (size - bytes_sent) > BUFF_SIZE ? BUFF_SIZE : (size - bytes_sent);
+        memcpy(buffer, buffer + bytes_sent, chunk_size);
 
+        if (write(socket, buffer, chunk_size) < 0) {
+            perror("Failed to send file data");
+            return -1;
+        }
+        bytes_sent += chunk_size;
+    }
+	printf("send_file_to_client is success!");
+    //TODO: return 0 on success, -1 on failure
+	return 0;
 }
 
 
@@ -176,15 +194,37 @@ int send_file_to_client(int socket, char * buffer, int size)
 char * get_request_server(int fd, size_t *filelength)
 {
     //TODO: create a packet_t to hold the packet data
- 
+	packet_t packet;
+	
     //TODO: receive the response packet
-  
+	if (read(fd, &packet.size, sizeof(packet.size)) <= 0) {
+        perror("Failed to receive file size");
+        return NULL;
+    }
+	char *buffer = malloc(*filelength);
+    if (!buffer) {
+        perror("Failed to allocate memory for file data");
+        return NULL;
+    }
+
     //TODO: get the size of the image from the packet
 
     //TODO: recieve the file data and save into a buffer variable.
+	int recieved = 0;
+    while (recieved < *filelength) {
+        int chunk_size = (*filelength - recieved) > BUFF_SIZE ? BUFF_SIZE : (*filelength - recieved);
+        int received = read(fd, buffer + recieved, chunk_size);
+        if (received <= 0) {
+            perror("Failed to receive file data");
+            free(buffer);
+            return NULL;
+        }
+        recieved += received;
+    }
 
     //TODO: return the buffer
-
+	printf("get_request_server is much success!");
+	return buffer;
 }
 
 
@@ -203,14 +243,23 @@ char * get_request_server(int fd, size_t *filelength)
 int setup_connection(int port)
 {
     //TODO: create a sockaddr_in struct to hold the address of the server   
-
+    struct sockaddr_in serveradd;
     //TODO: create a socket and save the file descriptor to sockfd
-   
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+      perror("ERROR opening socket");
+      exit (-1);
+    }
     //TODO: assign IP, PORT to the sockaddr_in struct
-
+    serveradd.sin_family = AF_INET;
+    serveradd.sin_port = htons((unsigned short)port);
     //TODO: connect to the server
-   
+    if (connect(sockfd, (struct sockaddr *)&serveradd, sizeof(serveradd)) < 0) {
+      perror("ERROR connecting");
+      exit (-1);
+    }
     //TODO: return the file descriptor for the socket
+    return sockfd;
 }
 
 
@@ -224,9 +273,14 @@ int setup_connection(int port)
 int send_file_to_server(int socket, FILE *file, int size) 
 {
     //TODO: send the file size packet
-   
+
+    //int n = write(socket, , size);
+    //if(n<0){
+      //perror("ERROR writing to socket");
+    //}
 
     //TODO: send the file data
+
    
 
     // TODO: return 0 on success, -1 on failure
@@ -242,10 +296,10 @@ int send_file_to_server(int socket, FILE *file, int size)
 int receive_file_from_server(int socket, const char *filename) 
 {
     //TODO: create a buffer to hold the file data
-    char buffer[BUFFER_SIZE];
+    char buf[BUFF_SIZE];
     packet_t size_packet;
-    size_t bytes_received = 0;
-    size_t total_bytes = 0;
+    size_t recieved = 0;
+    size_t tot_bytes = 0;
 
 
     //TODO: open the file for writing binary data
@@ -266,14 +320,14 @@ int receive_file_from_server(int socket, const char *filename)
     }
 
    //TODO: get the size of the image from the packet
-   total_bytes = size_packet.size;
+   tot_bytes = size_packet.size;
 
    //TODO: recieve the file data and write it to the file
-    while (bytes_received < total_bytes) {
-        size_t remaining = total_bytes - bytes_received;
-        size_t to_read = (remaining < BUFFER_SIZE) ? remaining : BUFFER_SIZE;
+    while (recieved < tot_bytes) {
+        size_t remainder = tot_bytes - recieved;
+        size_t to_read = (remaining < BUFF_SIZE) ? remainder : BUFF_SIZE;
         
-        ssize_t chunk = recv(socket, buffer, to_read, 0);
+        ssize_t chunk = recv(socket, buf, to_read, 0);
         
         if (chunk <= 0) {
             perror("Failed to receive file data");
@@ -281,13 +335,13 @@ int receive_file_from_server(int socket, const char *filename)
             return -1;
         }
 
-        if (fwrite(buffer, 1, chunk, file) != chunk) {
+        if (fwrite(buf, 1, chunk, file) != chunk) {
             perror("Failed to write to file");
             fclose(file);
             return -1;
         }
 
-        bytes_received += chunk;
+        recieved += chunk;
     }
 
     fclose(file);
@@ -297,6 +351,3 @@ int receive_file_from_server(int socket, const char *filename)
 
 
 }
-
-
-
