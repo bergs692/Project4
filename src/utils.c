@@ -168,16 +168,15 @@ int send_file_to_client(int socket, char * buffer, int size)
 
 
     //TODO: send the file data
-	int bytes_sent = 0;
-    while (bytes_sent < size) {
-        int chunk_size = (size - bytes_sent) > BUFF_SIZE ? BUFF_SIZE : (size - bytes_sent);
-        memcpy(buffer, buffer + bytes_sent, chunk_size);
+	int num_chunks = (size + BUFF_SIZE - 1) / BUFF_SIZE;
+	for (int i = 0; i < num_chunks; i++) {
+        int chunk_size = (i == num_chunks - 1) ? (size - i * BUFF_SIZE) : BUFF_SIZE;
+        char *chunk = buffer + i * BUFF_SIZE;
 
-        if (write(socket, buffer, chunk_size) < 0) {
-            perror("Failed to send file data");
+        if (write(socket, chunk, chunk_size) != chunk_size) {
+            perror("Error sending data chunk");
             return -1;
         }
-        bytes_sent += chunk_size;
     }
 	printf("send_file_to_client is success!");
     //TODO: return 0 on success, -1 on failure
