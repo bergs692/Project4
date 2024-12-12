@@ -203,14 +203,23 @@ char * get_request_server(int fd, size_t *filelength)
 int setup_connection(int port)
 {
     //TODO: create a sockaddr_in struct to hold the address of the server   
-
+    struct sockaddr_in serveradd;
     //TODO: create a socket and save the file descriptor to sockfd
-   
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+      perror("ERROR opening socket");
+      exit (-1);
+    }
     //TODO: assign IP, PORT to the sockaddr_in struct
-
+    serveradd.sin_family = AF_INET;
+    serveradd.sin_port = htons((unsigned short)port);
     //TODO: connect to the server
-   
+    if (connect(sockfd, (struct sockaddr *)&serveradd, sizeof(serveradd)) < 0) {
+      perror("ERROR connecting");
+      exit (-1);
+    }
     //TODO: return the file descriptor for the socket
+    return sockfd;
 }
 
 
