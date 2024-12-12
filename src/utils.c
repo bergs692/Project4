@@ -26,6 +26,8 @@
 #include <limits.h>
 #include <stdint.h>
 
+#define BUFF_SIZE 1028
+
 //TODO: Declare a global variable to hold the file descriptor for the server socket
 int master_fd;
 //TODO: Declare a global variable to hold the mutex lock for the server socket
@@ -155,15 +157,31 @@ int accept_connection(void) {
 int send_file_to_client(int socket, char * buffer, int size) 
 {
     //TODO: create a packet_t to hold the packet data
- 
+	packet_t packet;
+	packet.size = size;
+	if(write(socket, &packet.size, sizeof(packet.size)) < 0){
+		perror("Failed to send file size!");
+		return -1;
+	}
 
     //TODO: send the file size packet
 
 
     //TODO: send the file data
-  
-    //TODO: return 0 on success, -1 on failure
+	int bytes_sent = 0;
+    while (bytes_sent < size) {
+        int chunk_size = (size - bytes_sent) > BUFF_SIZE ? BUFF_SIZE : (size - bytes_sent);
+        memcpy(packet.data, buffer + bytes_sent, chunk_size);
 
+        if (write(socket, packet.data, chunk_size) < 0) {
+            perror("Failed to send file data");
+            return -1;
+        }
+        bytes_sent += chunk_size;
+    }
+	fprintf("send_file_to_client is success!");
+    //TODO: return 0 on success, -1 on failure
+	return 0;
 }
 
 
@@ -176,15 +194,38 @@ int send_file_to_client(int socket, char * buffer, int size)
 char * get_request_server(int fd, size_t *filelength)
 {
     //TODO: create a packet_t to hold the packet data
- 
+	packet_t packet;
+	
     //TODO: receive the response packet
-  
+	if (read(fd, &packet.size, sizeof(packet.size)) <= 0) {
+        perror("Failed to receive file size");
+        return NULL;
+    }
+	int *filelength = packet.size;
+	char *buffer = malloc(*filelength);
+    if (!buffer) {
+        perror("Failed to allocate memory for file data");
+        return NULL;
+    }
+
     //TODO: get the size of the image from the packet
 
     //TODO: recieve the file data and save into a buffer variable.
+	int bytes_received = 0;
+    while (bytes_received < *filelength) {
+        int chunk_size = (*filelength - bytes_received) > BUFF_SIZE ? BUFF_SIZE : (*filelength - bytes_received);
+        int received = read(fd, buffer + bytes_received, chunk_size);
+        if (received <= 0) {
+            perror("Failed to receive file data");
+            free(buffer);
+            return NULL;
+        }
+        bytes_received += received;
+    }
 
     //TODO: return the buffer
-
+	fprintf("get_request_server is much success!");
+	return buffer;
 }
 
 
