@@ -273,12 +273,45 @@ int send_file_to_server(int socket, FILE *file, int size)
 {
     //TODO: send the file size packet
 
-    //int n = write(socket, , size);
-    //if(n<0){
-      //perror("ERROR writing to socket");
-    //}
+    int n = write(socket, &size, sizeof(size));
+    if(n<0){
+      perror("ERROR writing to socket");
+      return -1;
+    }
 
     //TODO: send the file data
+
+    char buffer[BUFF_SIZE];
+    int bytes_sent = 0;
+    int remaining = size;
+    
+    while (remaining > 0) {
+        // Determine how much to read this iteration
+        int chunk_size = (remaining < BUFF_SIZE) ? remaining : BUFF_SIZE;
+        
+        // Read from the file into the buffer
+        size_t bytes_read = fread(buffer, 1, chunk_size, file);
+        if (bytes_read != (size_t)chunk_size) {
+            if (feof(file)) {
+                perror("Unexpected end of file");
+            } else if (ferror(file)) {
+                perror("Error reading file");
+            }
+            return -1;
+        }
+
+        // Write the buffer content to the socket
+        if (write(socket, buffer, bytes_read) != (ssize_t)bytes_read) {
+            perror("Error sending data chunk");
+            return -1;
+        }
+
+        bytes_sent += bytes_read;
+        remaining -= bytes_read;
+    }
+
+    printf("send_file_to_server is success!\n");
+	return 0;
 
    
 
