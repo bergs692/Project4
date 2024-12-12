@@ -171,15 +171,15 @@ int send_file_to_client(int socket, char * buffer, int size)
 	int bytes_sent = 0;
     while (bytes_sent < size) {
         int chunk_size = (size - bytes_sent) > BUFF_SIZE ? BUFF_SIZE : (size - bytes_sent);
-        memcpy(packet.data, buffer + bytes_sent, chunk_size);
+        memcpy(buffer, buffer + bytes_sent, chunk_size);
 
-        if (write(socket, packet.data, chunk_size) < 0) {
+        if (write(socket, buffer, chunk_size) < 0) {
             perror("Failed to send file data");
             return -1;
         }
         bytes_sent += chunk_size;
     }
-	fprintf("send_file_to_client is success!");
+	printf("send_file_to_client is success!");
     //TODO: return 0 on success, -1 on failure
 	return 0;
 }
@@ -224,10 +224,9 @@ char * get_request_server(int fd, size_t *filelength)
     }
 
     //TODO: return the buffer
-	fprintf("get_request_server is much success!");
+	printf("get_request_server is much success!");
 	return buffer;
 }
-
 
 /*
 ################################################
