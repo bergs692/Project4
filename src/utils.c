@@ -274,12 +274,16 @@ int send_file_to_server(int socket, FILE *file, int size)
 {
     //TODO: send the file size packet
 
-    //int n = write(socket, , size);
-    //if(n<0){
-      //perror("ERROR writing to socket");
-    //}
+    int n = write(socket, &size, sizeof(size));
+    if(n<0){
+      perror("ERROR writing to socket");
+      return -1;
+    }
 
     //TODO: send the file data
+    
+    //TODO: return 0 on success, -1 on failure
+	return 0;
 
    
 
